@@ -1,0 +1,39 @@
+@inherits StyleComponentBase
+
+<style>
+    .object-table-toolbar {
+        padding-left: calc(var(--theme-spacing, 8) * 2px);
+        padding-right: calc(var(--theme-spacing, 8) * 1px);
+    }
+
+    @media (prefers-color-scheme: light) {
+        .object-table-toolbar-hilight {
+            color: var(--theme-palette-secondary-main);
+            background-color: rgb(250, 224, 233);
+            @* background-color: var(--theme-palette-secondary-light); *@
+        }
+    }
+
+    @media (prefers-color-scheme: dark) {
+        .object-table-toolbar-hilight {
+            color: var(--theme-palette-text-primary);
+            background-color: var(--theme-palette-secondary-dark);
+        }
+    }
+
+    .object-table-toolbar-title {
+        flex: 1 1 100%;
+    }
+
+    .object-sort-visually-hidden {
+        top: 20px;
+        clip: rect(0 0 0 0);
+        width: 1px;
+        border: 0;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        position: absolute;
+    }
+</style>

@@ -7,8 +7,15 @@
 
 
     <ItemGroup>
-        <PackageReference Include="Microsoft.AspNetCore.Components" Version="3.1.7"/>
-        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="3.1.7"/>
+        <PackageReference Include="Microsoft.AspNetCore.Components" Version="3.1.7" />
+        <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="3.1.7" />
+    </ItemGroup>
+
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\pub\Skclusive.Core.Component\src\Component.csproj" />
+      <ProjectReference Include="..\app\Cherry.Lib.Core.App.csproj" />
+      <ProjectReference Include="..\disco\Cherry.Lib.Core.Disco.csproj" />
     </ItemGroup>
 
 </Project>
