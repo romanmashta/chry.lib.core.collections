@@ -1,0 +1,19 @@
+{
+  "name": "@chry/lib.core.collections",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "",
+  "author": {
+    "name": "Roman Mashta",
+    "email": "roman.mashta@gmail.com",
+    "url": ""
+  },
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+  },
+  "devDependencies": {
+  },
+  "dependencies": {
+  }
+}
