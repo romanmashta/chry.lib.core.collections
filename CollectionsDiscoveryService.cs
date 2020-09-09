@@ -21,6 +21,7 @@ namespace Cherry.Lib.Core.Collections
                 ResourcePath = c.ResourcePath,
                 MetaInfo = new MetaInfo
                 {
+                    Priority = Priority.High,
                     Icon = c.Icon,
                     DisplayName = c.DisplayName
                 }

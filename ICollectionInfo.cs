@@ -4,12 +4,12 @@ using Cherry.Lib.Core.App.Discovery;
 
 namespace Cherry.Lib.Core.Collections
 {
-    public interface IObjectCollection : IResource
+    public interface IObjectCollection : IResource, ISortable
     {
         string ResourcePath { get; }
         string Icon { get; }
-        string DisplayName { get; }
-
+        string DisplayName { get; }       
+        List<Accessor> Accesors { get; }
         Task<IEnumerable<object>> FetchItems();
-    }    
+    }
 }
