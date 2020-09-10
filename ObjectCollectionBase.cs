@@ -35,17 +35,22 @@ namespace Cherry.Lib.Core.Collections
         public string Icon { get; }
         public string DisplayName { get; }
         
+        public string[] Keywords { get; }
+
         public List<Accessor> Accesors { get; }
 
         protected ObjectCollectionBase(string resourcePath, 
             string displayName, 
             string icon,
-            Accessors<T> accessors)
+            Accessors<T> accessors,
+            string[] keywords = null
+            )
         {
             DisplayName = displayName;
             Icon = icon;
             ResourcePath = resourcePath;
             Accesors = BuildAccessors(accessors);
+            Keywords = keywords;
         }
 
         private List<Accessor> BuildAccessors(Accessors<T> accessors)  
