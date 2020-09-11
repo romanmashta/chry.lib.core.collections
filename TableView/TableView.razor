@@ -1,27 +1,24 @@
 <CollectionsResources/>
 
 @using Cherry.Lib.Core.Disco.ContentViewer
+@using Serilog
+@using Cherry.Lib.Core.App.Discovery
+@using Cherry.Lib.Core.Disco.Navigation
 @inherits ResourceViewBase<IObjectCollection>
 
-<div
-    style="width: 100%; margin-top: 24px;">
+@inject INavigator Navigator
+@inject ILogger Logger;
+
+<div class="Collection-Container">
     <Paper Style="width: 100%; overflow-x: auto;">
-        <Table
-            Style="max-height: 80vh; overflow: auto;"
-            aria-labelledby="tableTitle"
-            StickyHeader
-            aria-label="sticky table">
+        <Table>
             <TableHead>
                 <TableRow>
-                    @{var first = true;}
                     @foreach (var accessor in Resource.Accesors)
                     {
-                        <TableCell Align="@(first ? Align.Left : Align.Right)">
+                        <TableCell>
                             @CreateSortableColumn(accessor)
                         </TableCell>
-                        {
-                            first = false;
-                        }
                     }
                 </TableRow>
             </TableHead>
@@ -38,20 +35,23 @@
                 {
                     @foreach (var row in Items)
                     {
-                        <tr class="TableRow-Root TableRow-Body TableRow-Hover">
-                            @{ var first = true; }
+                        <tr class="TableRow-Root TableRow-Body TableRow-Hover" @onclick="e=> RowClicked(row.GetRef())">
                             @foreach (var accessor in Resource.Accesors)
                             {
-                                <td class=@($"TableCell-Root TableCell-Body {(first ? "" : "TableCell-Align-Right")}")>@accessor.Getter(row)</td>
-                                {
-                                    first = false;
-                                }
+                                <td class=@($"TableCell-Root TableCell-Body")>@accessor.Getter(row)</td>
                             }
                         </tr>
                     }
                 }
             </TableBody>
         </Table>
+        <div class="Collection-Actions">
+            <Fab
+                Color="@Color.Primary"
+                aria-label="add">
+                <AddIcon/>
+            </Fab>
+        </div>
     </Paper>
 </div>
 
@@ -110,4 +110,10 @@
 
         FetchItems();
     }
+    
+    private void RowClicked(string objectRef)
+    {
+        Logger.Information("Row clicked for object {@ref}", objectRef);
+        Navigator.NavigateTo(objectRef, true, Resource);
+    }    
 }
