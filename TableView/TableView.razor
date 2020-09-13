@@ -4,6 +4,8 @@
 @using Serilog
 @using Cherry.Lib.Core.App.Discovery
 @using Cherry.Lib.Core.Disco.Navigation
+@using Cherry.Lib.Core.Icons
+@using Cherry.Lib.Core.Meta
 @inherits ResourceViewBase<IObjectCollection>
 
 @inject INavigator Navigator
@@ -35,24 +37,26 @@
                 {
                     @foreach (var row in Items)
                     {
-                        <tr class="TableRow-Root TableRow-Body TableRow-Hover" @onclick="e=> RowClicked(row.GetRef())">
+                        <tr class="TableRow-Root TableRow-Body TableRow-Hover" @onclick="e => RowClicked(row.GetRef())">
                             @foreach (var accessor in Resource.Accesors)
                             {
-                                <td class=@($"TableCell-Root TableCell-Body")>@accessor.Getter(row)</td>
+                                <td class=@($"TableCell-Root TableCell-Body")>@RenderCell(accessor, row)</td>
                             }
                         </tr>
                     }
                 }
             </TableBody>
         </Table>
-        <div class="Collection-Actions">
-            <Fab
-                Color="@Color.Primary"
-                aria-label="add">
-                <AddIcon/>
-            </Fab>
-        </div>
     </Paper>
+    <div class="Collection-Actions">
+        <Fab
+            Color="@Color.Secondary"
+            Variant="@FabVariant.Extended"
+            OnClick="@CreateNewClicked">
+            <AddIcon/>
+            Створити
+        </Fab>
+    </div>
 </div>
 
 @code
@@ -110,10 +114,33 @@
 
         FetchItems();
     }
-    
+
     private void RowClicked(string objectRef)
     {
         Logger.Information("Row clicked for object {@ref}", objectRef);
         Navigator.NavigateTo(objectRef, true, Resource);
-    }    
+    }
+    
+    private void CreateNewClicked()
+    {
+        Logger.Information("CreateNewClicked");
+        Navigator.NavigateTo(Objects.NewObjectUri, true, Resource);
+    }
+
+    RenderFragment RenderCell(Accessor accessor, object row)
+    {
+        var value = accessor.Getter(row);
+        if (accessor.AccessorType.IsEnum)
+        {
+            var icon = value.GetEnumMemberAttribute<IconAttribute>().Name;
+            var title = value.GetEnumMemberAttribute<TitleAttribute>()?.Name ?? value?.ToString();
+            var color = value.GetEnumMemberAttribute<ColorAttribute>()?.Color ?? ElementColor.Grey;
+            return RenderBadge(icon, color.ToString(), title);
+        }
+        return RenderString(value?.ToString());
+    }
+
+    RenderFragment RenderString(string text) => @<span>@text</span>;
+    
+    RenderFragment RenderBadge(string icon, string color, string text) => @<div class=@($"Collection-Chip Collection-Chip-{color}") ><MaterialIcon>@icon</MaterialIcon><div>@text</div></div>;
 }

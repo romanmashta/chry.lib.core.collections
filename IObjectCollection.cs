@@ -9,6 +9,8 @@ namespace Cherry.Lib.Core.Collections
         string ResourcePath { get; }
         string Icon { get; }
         string DisplayName { get; }       
+        
+        int? Badge { get; }
         List<Accessor> Accesors { get; }
         Task<IEnumerable<object>> FetchItems();
     }

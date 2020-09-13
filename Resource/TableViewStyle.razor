@@ -1,30 +1,6 @@
 @inherits StyleComponentBase
 
 <style>
-    .object-table-toolbar {
-        padding-left: calc(var(--theme-spacing, 8) * 2px);
-        padding-right: calc(var(--theme-spacing, 8) * 1px);
-    }
-
-    @media (prefers-color-scheme: light) {
-        .object-table-toolbar-hilight {
-            color: var(--theme-palette-secondary-main);
-            background-color: rgb(250, 224, 233);
-            @* background-color: var(--theme-palette-secondary-light); *@
-        }
-    }
-
-    @media (prefers-color-scheme: dark) {
-        .object-table-toolbar-hilight {
-            color: var(--theme-palette-text-primary);
-            background-color: var(--theme-palette-secondary-dark);
-        }
-    }
-
-    .object-table-toolbar-title {
-        flex: 1 1 100%;
-    }
-
     .object-sort-visually-hidden {
         top: 20px;
         clip: rect(0 0 0 0);
@@ -37,10 +13,52 @@
         position: absolute;
     }
     
+    .TableRow-Body{
+        cursor: pointer;
+    }
+    
     .Collection-Container{
     }
     
     .Collection-Actions{
+        padding-top: calc(var(--theme-spacing, 8) * 3px);
         display: flex;
+        justify-content: flex-end;
     }    
+    
+    .Collection-Chip{
+        padding: calc(var(--theme-spacing, 8) * 0.5px) calc(var(--theme-spacing, 8) * 1px);
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+    }
+    
+    .Collection-Chip .MaterialIcon-Root{
+        padding-right: calc(var(--theme-spacing, 8) * 0.5px);
+    }
+    
+    .Collection-Chip-Yellow{
+        color: var(--theme-palette-secondary-contrast-text, #fff);
+        background-color: var(--theme-palette-secondary-main, rgb(220, 0, 78));
+    }
+    
+    .Collection-Chip-Grey{
+        color: var(--theme-palette-secondary-contrast-text, #fff);
+        background-color: var(--theme-palette-action-selected, rgba(0, 0, 0, 0.14));
+    }            
+
+    .Collection-Chip-Red{
+        color: var(--theme-palette-error-contrast-text, #fff);
+        background-color: var(--theme-palette-error-dark, #d32f2f);
+    }
+    
+    .Collection-Chip-Green{
+        color: var(--theme-palette-error-contrast-text, #fff);
+        background-color: var(--theme-palette-success-dark, #388e3c);
+    }
+    
+    .Collection-Chip-Blue{
+        color: var(--theme-palette-info-contrast-tex, #fff);
+        background-color: var(--theme-palette-info-dark, #d32f2f);
+    }                                          
 </style>

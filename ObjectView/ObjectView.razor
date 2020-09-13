@@ -1,7 +1,64 @@
-@using Cherry.Lib.Core.Disco.ContentViewer
-<h3>DummyView for @(this.Resource?.DisplayName)</h3>
+<CollectionsResources/>
 
-@inherits ResourceViewBase<ObjectResource>
+@using Cherry.Lib.Core.Disco.ContentViewer
+@using Skclusive.Material.Grid
+@using Skclusive.Material.Input
+
+@inherits ObjectViewComponent
+
+<ObjectViewStyle/>
+
+<Paper Class="ObjectView-Paper">
+    <div
+        style="flex-grow: 1;">
+        <Grid Container Justify="@Justify.Center">
+            <Grid
+                Container
+                Item
+                Large="@GridSize.Eight"
+                Spacing="@Spacing.Three">
+                @foreach (var accessor in Resource.Accesors)
+                {
+                    <Grid
+                        Item
+                        ExtraSmall="@GridSize.Twelve"
+                        Small="@(accessor.Long || accessor.Multiline ? @GridSize.Twelve : @GridSize.Six)">
+
+                        <TextField
+                            @key="@(accessor.Name)"
+                             FullWidth
+                             Id="@(accessor.Name)"
+                             Label="@(accessor.Title)"
+                             Multiline="@(accessor.Multiline)"
+                             Rows="@(accessor.Multiline ? 4 : 1)"
+                             Value="@(accessor.Getter(Resource.TargetObject)?.ToString())">
+@*                             @if (accessor.Icon != null) *@
+@*                             { *@
+@*                                 <StartAdornment> *@
+@*                                     <InputAdornment *@
+@*                                         Position="@InputPosition.Start"> *@
+@*                                         <MaterialIcon>@accessor.Icon</MaterialIcon> *@
+@*                                     </InputAdornment> *@
+@*                                     } *@
+@*                                 </StartAdornment> *@
+@*                             } *@
+                        </TextField>
+
+                    </Grid>
+                }
+            </Grid>
+        </Grid>
+    </div>
+</Paper>
+<div class="ObjectView-Actions">
+    <Fab
+        Color="@Color.Secondary"
+        Variant="@FabVariant.Extended"
+        OnClick="@SaveActionClick">
+        <CheckIcon/>
+        Зберегти
+    </Fab>
+</div>
 
 @code {
 }

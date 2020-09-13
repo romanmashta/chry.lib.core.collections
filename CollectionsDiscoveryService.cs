@@ -23,7 +23,8 @@ namespace Cherry.Lib.Core.Collections
                 {
                     Priority = Priority.High,
                     Icon = c.Icon,
-                    DisplayName = c.DisplayName
+                    DisplayName = c.DisplayName,
+                    Badge = c.Badge
                 }
             });
     }

@@ -5,6 +5,8 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Cherry.Lib.Core.App.Discovery;
 using Cherry.Lib.Core.Meta;
+using Microsoft.AspNetCore.Components;
+using Serilog;
 using Skclusive.Material.Icon;
 
 namespace Cherry.Lib.Core.Collections
@@ -14,6 +16,11 @@ namespace Cherry.Lib.Core.Collections
         public string Name { get; set; }
         public string Title { get; set; }
         public Func<object, object> Getter { get; set; }
+        public bool Long { get; set; }
+        public string Icon { get; set; }
+        public bool Multiline { get; set; }
+        
+        public Type AccessorType { get; set; }
 
         public static Accessor FromExpression<T>(Expression<Func<T, object>> expression)
         {
@@ -21,6 +28,7 @@ namespace Cherry.Lib.Core.Collections
             var accessedProperty = expression.GetPropertyInfo();
             accessor.Name = accessedProperty.Name;
             accessor.Title = accessedProperty.GetMemberAttribute<TitleAttribute>()?.Name ?? accessedProperty.Name;
+            accessor.AccessorType = accessedProperty.PropertyType;
             var getter = expression.Compile();
             accessor.Getter = (o) => getter((T) o);
 
@@ -34,7 +42,10 @@ namespace Cherry.Lib.Core.Collections
         public string ResourcePath { get; }
         public string Icon { get; set; }
         public string DisplayName { get; set; }
-        
+        public int? Badge => GetBadgeCount();
+
+        protected virtual int? GetBadgeCount() => null;
+
         public string[] Keywords { get; set; }
 
         public List<Accessor> Accesors { get; }
@@ -77,7 +88,8 @@ namespace Cherry.Lib.Core.Collections
 
     public abstract class InmemoryCollection<T> : ObjectCollectionBase<T>
     {
-        private List<T> _collection = null;
+        protected List<T> _collection = null;
+
         public InmemoryCollection(string resourcePath, string displayName, string icon, Accessors<T> accessors, string[] keywords = null) : base(resourcePath, displayName, icon, accessors, keywords)
         {
         }
@@ -91,7 +103,17 @@ namespace Cherry.Lib.Core.Collections
         public override async Task<IResource> ResolveResource(string objectRef)
         {
             var items = await FetchItems();
-            var targetObject = items.Cast<IObjectWithRef>().FirstOrDefault(o => o.Ref == objectRef);
+            IObjectWithRef targetObject = null;
+            if (objectRef == Objects.NewObjectUri)
+            {
+                targetObject = (IObjectWithRef) typeof(T).CreateObjectOf();
+                targetObject.Ref = Guid.NewGuid().ToString();
+            }
+            else
+            {
+                targetObject = items.Cast<IObjectWithRef>().FirstOrDefault(o => o.Ref == objectRef);
+            }
+            
             var resorce = ObjectResource.FromObject(targetObject);
             resorce.Icon ??= this.Icon;
             resorce.DisplayName ??= this.DisplayName;
