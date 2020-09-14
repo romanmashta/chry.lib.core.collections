@@ -13,19 +13,22 @@ namespace Cherry.Lib.Core.Collections
         public string Icon { get; set; }
         public string DisplayName { get; set; }
         public string[] Keywords { get; set; }
+        public bool WithHeader => true;
         public IObjectWithRef TargetObject { get; set; }
 
         public List<Accessor> Accesors { get; set; } = new List<Accessor>();
 
         public Type QueryView() => typeof(ObjectView.ObjectView);
 
-        public static IResource FromObject(IObjectWithRef targetObject)
+        public static IResource FromObject(IObjectWithRef targetObject, string icon, string displayName, string[] keywords)
         {
             var resource = new ObjectResource();
             var namedEntity = targetObject as INamedEntity;
-            resource.DisplayName = namedEntity?.Name ?? targetObject.GetTypeAttribute<TitleAttribute>()?.Name;
+            resource.DisplayName = namedEntity?.Name ?? targetObject.GetTypeAttribute<TitleAttribute>()?.Name ?? displayName;
             resource.TargetObject = targetObject;
             resource.Accesors = BuildAccessors(targetObject);
+            resource.Icon ??= icon;
+            resource.Keywords ??= keywords;
             return resource;
         }
 

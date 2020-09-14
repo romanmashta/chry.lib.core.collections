@@ -42,11 +42,14 @@ namespace Cherry.Lib.Core.Collections
         public string ResourcePath { get; }
         public string Icon { get; set; }
         public string DisplayName { get; set; }
+        public virtual Priority IntentionPriority => Priority.Middle;
+        public virtual bool CanAdd => true;
         public int? Badge => GetBadgeCount();
 
         protected virtual int? GetBadgeCount() => null;
 
         public string[] Keywords { get; set; }
+        public bool WithHeader => true;
 
         public List<Accessor> Accesors { get; }
 
@@ -114,10 +117,7 @@ namespace Cherry.Lib.Core.Collections
                 targetObject = items.Cast<IObjectWithRef>().FirstOrDefault(o => o.Ref == objectRef);
             }
             
-            var resorce = ObjectResource.FromObject(targetObject);
-            resorce.Icon ??= this.Icon;
-            resorce.DisplayName ??= this.DisplayName;
-            resorce.Keywords ??= this.Keywords;
+            var resorce = ObjectResource.FromObject(targetObject, Icon, DisplayName, Keywords);
             return await Task.FromResult(resorce);
         }
     }

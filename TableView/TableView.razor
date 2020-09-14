@@ -49,13 +49,16 @@
         </Table>
     </Paper>
     <div class="Collection-Actions">
-        <Fab
-            Color="@Color.Secondary"
-            Variant="@FabVariant.Extended"
-            OnClick="@CreateNewClicked">
-            <AddIcon/>
-            Створити
-        </Fab>
+        @if (Resource.CanAdd)
+        {
+            <Fab
+                Color="@Color.Secondary"
+                Variant="@FabVariant.Extended"
+                OnClick="@CreateNewClicked">
+                <AddIcon/>
+                Створити
+            </Fab>
+        }
     </div>
 </div>
 
@@ -132,7 +135,7 @@
         var value = accessor.Getter(row);
         if (accessor.AccessorType.IsEnum)
         {
-            var icon = value.GetEnumMemberAttribute<IconAttribute>().Name;
+            var icon = value.GetEnumMemberAttribute<IconAttribute>()?.Name;
             var title = value.GetEnumMemberAttribute<TitleAttribute>()?.Name ?? value?.ToString();
             var color = value.GetEnumMemberAttribute<ColorAttribute>()?.Color ?? ElementColor.Grey;
             return RenderBadge(icon, color.ToString(), title);

@@ -6,9 +6,11 @@ namespace Cherry.Lib.Core.Collections
 {
     public interface IObjectCollection : IResource, ISortable, IResourceResolver
     {
+        bool CanAdd { get; }
         string ResourcePath { get; }
         string Icon { get; }
-        string DisplayName { get; }       
+        string DisplayName { get; }
+        Priority IntentionPriority { get; }
         
         int? Badge { get; }
         List<Accessor> Accesors { get; }
