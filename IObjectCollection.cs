@@ -11,6 +11,7 @@ namespace Cherry.Lib.Core.Collections
         string Icon { get; }
         string DisplayName { get; }
         Priority IntentionPriority { get; }
+        int? Order { get; set; }
         
         int? Badge { get; }
         List<Accessor> Accesors { get; }

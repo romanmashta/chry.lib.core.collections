@@ -24,7 +24,8 @@ namespace Cherry.Lib.Core.Collections
                     Priority = c.IntentionPriority,
                     Icon = c.Icon,
                     DisplayName = c.DisplayName,
-                    Badge = c.Badge
+                    Badge = c.Badge,
+                    Order = c.Order
                 }
             });
     }

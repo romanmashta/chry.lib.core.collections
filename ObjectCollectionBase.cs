@@ -43,6 +43,7 @@ namespace Cherry.Lib.Core.Collections
         public string Icon { get; set; }
         public string DisplayName { get; set; }
         public virtual Priority IntentionPriority => Priority.Middle;
+        public int? Order { get; set; }
         public virtual bool CanAdd => true;
         public int? Badge => GetBadgeCount();
 
@@ -57,7 +58,8 @@ namespace Cherry.Lib.Core.Collections
             string displayName, 
             string icon,
             Accessors<T> accessors,
-            string[] keywords = null
+            string[] keywords = null,
+            int? order = null
             )
         {
             DisplayName = displayName;
@@ -65,6 +67,7 @@ namespace Cherry.Lib.Core.Collections
             ResourcePath = resourcePath;
             Accesors = BuildAccessors(accessors);
             Keywords = keywords;
+            Order = order;
         }
 
         private List<Accessor> BuildAccessors(Accessors<T> accessors)  
@@ -93,7 +96,7 @@ namespace Cherry.Lib.Core.Collections
     {
         protected List<T> _collection = null;
 
-        public InmemoryCollection(string resourcePath, string displayName, string icon, Accessors<T> accessors, string[] keywords = null) : base(resourcePath, displayName, icon, accessors, keywords)
+        public InmemoryCollection(string resourcePath, string displayName, string icon, Accessors<T> accessors, string[] keywords = null, int? order = null) : base(resourcePath, displayName, icon, accessors, keywords, order)
         {
         }
 
@@ -101,7 +104,10 @@ namespace Cherry.Lib.Core.Collections
             ? Task.FromResult(_collection = await LoadItems())
             : Task.FromResult(_collection));
 
-        protected abstract Task<List<T>> LoadItems();
+        protected virtual async Task<List<T>> LoadItems()
+        {
+            return new List<T>();
+        }
 
         public override async Task<IResource> ResolveResource(string objectRef)
         {
