@@ -4,6 +4,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Cherry.Lib.Core.App.Discovery;
+using Cherry.Lib.Core.Data.Clients.Contracts;
 using Cherry.Lib.Core.Meta;
 using Microsoft.AspNetCore.Components;
 using Serilog;
@@ -125,6 +126,30 @@ namespace Cherry.Lib.Core.Collections
             
             var resorce = ObjectResource.FromObject(targetObject, Icon, DisplayName, Keywords);
             return await Task.FromResult(resorce);
+        }
+    }
+
+    public class EntityCollection<T> : InmemoryCollection<T>
+    {
+        private readonly IRepositoryClient<T> _repositoryClient;
+
+        public EntityCollection(
+            IRepositoryClient<T> repositoryClient,
+            string resourcePath,
+            string displayName,
+            string icon,
+            Accessors<T> accessors,
+            string[] keywords = null,
+            int? order = null)
+            : base(resourcePath, displayName, icon, accessors, keywords, order)
+        {
+            _repositoryClient = repositoryClient;
+        }
+
+        public override async Task<IEnumerable<T>> FetchItems()
+        {
+            var entities = await _repositoryClient.GetEntities(ResourcePath);
+            return entities.Items.ToList();
         }
     }
 

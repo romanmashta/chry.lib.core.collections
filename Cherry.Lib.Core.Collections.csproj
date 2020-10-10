@@ -16,6 +16,7 @@
     <ItemGroup>
       <ProjectReference Include="..\..\..\pub\Skclusive.Core.Component\src\Component.csproj" />
       <ProjectReference Include="..\app\Cherry.Lib.Core.App.csproj" />
+      <ProjectReference Include="..\data\src\Cherry.Lib.Core.Data\Cherry.Lib.Core.Data.csproj" />
       <ProjectReference Include="..\disco\Cherry.Lib.Core.Disco.csproj" />
       <ProjectReference Include="..\meta\Cherry.Lib.Core.Meta.csproj" />
     </ItemGroup>

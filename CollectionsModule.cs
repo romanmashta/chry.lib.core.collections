@@ -1,7 +1,7 @@
 using Autofac;
 using Cherry.Lib.Core.App.Discovery;
 using Cherry.Lib.Core.App.Extension;
-using Cherry.Lib.Core.App.Root;
+using Cherry.Lib.Core.Data;
 
 namespace Cherry.Lib.Core.Collections
 {
@@ -14,6 +14,7 @@ namespace Cherry.Lib.Core.Collections
     {
         public override void RegisterServices(ContainerBuilder builder)
         {
+            builder.RegisterModule<DataClientModule>();
             builder.RegisterDiscovery<CollectionsDiscoveryService>();
             builder.RegisterResolver<CollectionResolver>();
         }
