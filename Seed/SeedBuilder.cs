@@ -4,6 +4,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Threading.Tasks;
 using Cherry.Lib.Core.App.Discovery;
+using Cherry.Lib.Core.Data.Models;
 using ImpromptuInterface;
 
 namespace Cherry.Lib.Core.Collections.Seed

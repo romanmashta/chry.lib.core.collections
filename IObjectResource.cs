@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Cherry.Lib.Core.App.Discovery;
+using Cherry.Lib.Core.Data.Models;
 
 namespace Cherry.Lib.Core.Collections
 {

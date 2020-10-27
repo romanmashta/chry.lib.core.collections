@@ -1,10 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Cherry.Lib.Core.App.Discovery;
 using Cherry.Lib.Core.Data.Clients.Contracts;
+using Cherry.Lib.Core.Data.Models;
 using Cherry.Lib.Core.Meta;
 using Microsoft.AspNetCore.Components;
 using Serilog;
@@ -21,14 +23,20 @@ namespace Cherry.Lib.Core.Collections
         public string Icon { get; set; }
         public bool Multiline { get; set; }
         
+        public bool IsCollection { get; set; }
+        
         public Type AccessorType { get; set; }
+
+        public int Length { get; set; } = 0;
 
         public static Accessor FromExpression<T>(Expression<Func<T, object>> expression)
         {
             var accessor = new Accessor();
             var accessedProperty = expression.GetPropertyInfo();
+            var attr = accessedProperty.GetMemberAttribute<TitleAttribute>();
             accessor.Name = accessedProperty.Name;
-            accessor.Title = accessedProperty.GetMemberAttribute<TitleAttribute>()?.Name ?? accessedProperty.Name;
+            accessor.Title = attr?.Name ?? accessedProperty.Name;
+            accessor.Length = attr?.Length ?? 0;
             accessor.AccessorType = accessedProperty.PropertyType;
             var getter = expression.Compile();
             accessor.Getter = (o) => getter((T) o);

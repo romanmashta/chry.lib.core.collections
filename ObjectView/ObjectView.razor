@@ -3,6 +3,7 @@
 @using Cherry.Lib.Core.Disco.ContentViewer
 @using Skclusive.Material.Grid
 @using Skclusive.Material.Input
+@using System.Collections
 
 @inherits ObjectViewComponent
 
@@ -19,32 +20,55 @@
                 Spacing="@Spacing.Three">
                 @foreach (var accessor in Resource.Accesors)
                 {
-                    <Grid
-                        Item
-                        ExtraSmall="@GridSize.Twelve"
-                        Small="@(accessor.Long || accessor.Multiline ? @GridSize.Twelve : @GridSize.Six)">
+                    if (accessor.IsCollection == true)
+                    {
+                        <Grid
+                            Container
+                            Item
+                            ExtraSmall="@GridSize.Twelve"
+                            Small="@GridSize.Twelve">
+                            @foreach (var item in (IEnumerable)accessor.Getter(Resource.TargetObject))
+                            {
+                                var itemAccessors = ObjectResource.BuildAccessors(item);
+                                @foreach (var itemAccessor in itemAccessors)
+                                {
+                                    <Grid
+                                        ExtraSmall="@GridSize.Twelve"
+                                        Small="@(itemAccessor.Length !=0 ? ((GridSize)itemAccessor.Length) : GridSize.Twelve)"
+                                        Item>@itemAccessor.Getter(item)</Grid>                                    
+                                }
+                            }
+                        </Grid>
+                    }
+                    else
+                    {
+                        <Grid
+                            Item
+                            ExtraSmall="@GridSize.Twelve"
+                            Small="@(accessor.Long || accessor.Multiline ? @GridSize.Twelve : @GridSize.Six)">
 
-                        <TextField
-                            @key="@(accessor.Name)"
-                             FullWidth
-                             Id="@(accessor.Name)"
-                             Label="@(accessor.Title)"
-                             Multiline="@(accessor.Multiline)"
-                             Rows="@(accessor.Multiline ? 4 : 1)"
-                             Value="@(accessor.Getter(Resource.TargetObject)?.ToString())">
-@*                             @if (accessor.Icon != null) *@
-@*                             { *@
-@*                                 <StartAdornment> *@
-@*                                     <InputAdornment *@
-@*                                         Position="@InputPosition.Start"> *@
-@*                                         <MaterialIcon>@accessor.Icon</MaterialIcon> *@
-@*                                     </InputAdornment> *@
-@*                                     } *@
-@*                                 </StartAdornment> *@
-@*                             } *@
-                        </TextField>
+                            <TextField
+                                @key="@(accessor.Name)"
+                                 FullWidth
+                                 Id="@(accessor.Name)"
+                                 Label="@(accessor.Title)"
+                                 Multiline="@(accessor.Multiline)"
+                                 Rows="@(accessor.Multiline ? 4 : 1)"
+                                 Value="@(accessor.Getter(Resource.TargetObject)?.ToString())">
+                                @*                             @if (accessor.Icon != null) *@
+                                @*                             { *@
+                                @*                                 <StartAdornment> *@
+                                @*                                     <InputAdornment *@
+                                @*                                         Position="@InputPosition.Start"> *@
+                                @*                                         <MaterialIcon>@accessor.Icon</MaterialIcon> *@
+                                @*                                     </InputAdornment> *@
+                                @*                                     } *@
+                                @*                                 </StartAdornment> *@
+                                @*                             } *@
+                            </TextField>
 
-                    </Grid>
+                        </Grid>
+                    }
                 }
             </Grid>
         </Grid>

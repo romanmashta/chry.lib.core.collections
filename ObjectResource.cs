@@ -1,9 +1,11 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Autofac;
 using Cherry.Lib.Core.App.Discovery;
+using Cherry.Lib.Core.Data.Models;
 using Cherry.Lib.Core.Meta;
 
 namespace Cherry.Lib.Core.Collections
@@ -32,7 +34,7 @@ namespace Cherry.Lib.Core.Collections
             return resource;
         }
 
-        private static List<Accessor> BuildAccessors(IObjectWithRef objectWithRef)
+        public static List<Accessor> BuildAccessors(object objectWithRef)
         {
             var properties = objectWithRef
                 .GetEntityProperties()
@@ -40,15 +42,17 @@ namespace Cherry.Lib.Core.Collections
             return properties.Select(p => CreateAccessor(objectWithRef, p)).ToList();
         }
 
-        private static Accessor CreateAccessor(IObjectWithRef obj, PropertyInfo prop)
+        private static Accessor CreateAccessor(object obj, PropertyInfo prop)
         {
             var accessor = new Accessor
             {
                 Name = prop.Name,
                 Title = prop.GetMemberAttribute<TitleAttribute>()?.Name ?? prop.Name,
+                Length = prop.GetMemberAttribute<TitleAttribute>()?.Length ?? 0,
                 Long = prop.GetMemberAttribute<LongAttribute>() != null,
                 Multiline = prop.GetMemberAttribute<MultilineAttribute>() != null,
                 Icon = prop.GetMemberAttribute<IconAttribute>()?.Name,
+                IsCollection = typeof(IList).IsAssignableFrom(prop.PropertyType),
                 Getter = (o) => prop.GetValue(obj),
                 AccessorType = prop.PropertyType
             };
