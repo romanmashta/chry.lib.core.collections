@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Autofac;
 using Cherry.Lib.Core.App.Discovery;
 using Cherry.Lib.Core.Data.Models;
@@ -10,7 +11,7 @@ using Cherry.Lib.Core.Meta;
 
 namespace Cherry.Lib.Core.Collections
 {
-    public class ObjectResource : IObjectResource
+    public class ObjectResource : IObjectResource, ISaveableResource
     {
         public string Icon { get; set; }
         public string DisplayName { get; set; }
@@ -22,7 +23,7 @@ namespace Cherry.Lib.Core.Collections
 
         public Type QueryView() => typeof(ObjectView.ObjectView);
 
-        public static IResource FromObject(IObjectWithRef targetObject, string icon, string displayName, string[] keywords)
+        public static ISaveableResource FromObject(IObjectWithRef targetObject, string icon, string displayName, string[] keywords)
         {
             var resource = new ObjectResource();
             var namedEntity = targetObject as INamedEntity;
@@ -53,7 +54,16 @@ namespace Cherry.Lib.Core.Collections
                 Multiline = prop.GetMemberAttribute<MultilineAttribute>() != null,
                 Icon = prop.GetMemberAttribute<IconAttribute>()?.Name,
                 IsCollection = typeof(IList).IsAssignableFrom(prop.PropertyType),
+                IsEnum = prop.PropertyType.IsEnum,
                 Getter = (o) => prop.GetValue(obj),
+                Setter = (o, raw) =>
+                {
+                    var value = raw;
+                    if(prop.PropertyType.IsEnum){
+                        value = System.Enum.Parse(prop.PropertyType, raw.ToString());
+                    }
+                    prop.SetValue(o, value);
+                },                
                 AccessorType = prop.PropertyType
             };
             return accessor;
@@ -80,5 +90,7 @@ namespace Cherry.Lib.Core.Collections
         {
             ac.Getter = (o) => prop.GetValue(obj);
         }
+
+        public Action SaveResource { get; set; }
     }
 }

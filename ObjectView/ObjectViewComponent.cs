@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Cherry.Lib.Core.Disco.ContentViewer;
 using Cherry.Lib.Core.Disco.Navigation;
 using Microsoft.AspNetCore.Components;
@@ -12,6 +13,7 @@ namespace Cherry.Lib.Core.Collections.ObjectView
         
         protected void SaveActionClick(EventArgs obj)
         {
+            Resource.SaveResource?.Invoke();
             Navigator.PopResource();
         }        
     }

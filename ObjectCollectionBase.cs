@@ -19,6 +19,7 @@ namespace Cherry.Lib.Core.Collections
         public string Name { get; set; }
         public string Title { get; set; }
         public Func<object, object> Getter { get; set; }
+        public Action<object, object> Setter { get; set; }
         public bool Long { get; set; }
         public string Icon { get; set; }
         public bool Multiline { get; set; }
@@ -28,6 +29,8 @@ namespace Cherry.Lib.Core.Collections
         public Type AccessorType { get; set; }
 
         public int Length { get; set; } = 0;
+        
+        public bool IsEnum { get; set; }
 
         public static Accessor FromExpression<T>(Expression<Func<T, object>> expression)
         {
@@ -40,7 +43,6 @@ namespace Cherry.Lib.Core.Collections
             accessor.AccessorType = accessedProperty.PropertyType;
             var getter = expression.Compile();
             accessor.Getter = (o) => getter((T) o);
-
             return accessor;        
         }
     }
@@ -133,7 +135,13 @@ namespace Cherry.Lib.Core.Collections
             }
             
             var resorce = ObjectResource.FromObject(targetObject, Icon, DisplayName, Keywords);
+            resorce.SaveResource = () => SaveObject(targetObject);
             return await Task.FromResult(resorce);
+        }
+
+        public virtual async Task SaveObject(IObjectWithRef targetObject)
+        {
+            
         }
     }
 
@@ -158,6 +166,11 @@ namespace Cherry.Lib.Core.Collections
         {
             var entities = await _repositoryClient.GetEntities(ResourcePath);
             return entities.Items.ToList();
+        }
+
+        public override async Task SaveObject(IObjectWithRef targetObject)
+        {
+            await _repositoryClient.Update(ResourcePath, targetObject.Ref, targetObject);
         }
     }
 

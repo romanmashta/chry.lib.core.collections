@@ -2,8 +2,20 @@
 
 @using Cherry.Lib.Core.Disco.ContentViewer
 @using Skclusive.Material.Grid
+@using Skclusive.Material.Card
 @using Skclusive.Material.Input
 @using System.Collections
+@using Cherry.Lib.Bot.Core.Host
+@using Cherry.Lib.Bot.Core.Store
+@using Cherry.Lib.Core.Disco.ContentViewer
+@using Serilog
+@using Cherry.Lib.Core.App.Discovery
+@using Cherry.Lib.Core.Disco.Navigation
+@using Cherry.Lib.Core.Icons
+@using Cherry.Lib.Core.Meta
+@using Newtonsoft.Json
+@using Skclusive.Material.Modal
+
 
 @inherits ObjectViewComponent
 
@@ -23,29 +35,99 @@
                     if (accessor.IsCollection == true)
                     {
                         <Grid
+                            @key="@accessor"
                             Container
                             Item
                             ExtraSmall="@GridSize.Twelve"
                             Small="@GridSize.Twelve">
-                            @foreach (var item in (IEnumerable)accessor.Getter(Resource.TargetObject))
+                            @foreach (var item in (IEnumerable) accessor.Getter(Resource.TargetObject))
                             {
+                                if (item is IAnswer qa)
+                                {
+                                    if (qa.Value?.StartsWith("https://") == true)
+                                    {
+                                        continue;
+                                    }
+                                    <Grid
+                                        ExtraSmall="@GridSize.Twelve"
+                                        Small="@GridSize.Eight"
+                                        Item>
+                                        @qa.Name
+                                    </Grid>
+                                    <Grid
+                                        ExtraSmall="@GridSize.Twelve"
+                                        Small="@GridSize.Four"
+                                        Item>
+                                        @qa.Value
+                                    </Grid>
+                                }
+                                /*
                                 var itemAccessors = ObjectResource.BuildAccessors(item);
                                 @foreach (var itemAccessor in itemAccessors)
                                 {
+                                    if (@itemAccessor.Getter(item)?.ToString()?.StartsWith("https://") == true)
+                                        continue;
                                     <Grid
                                         ExtraSmall="@GridSize.Twelve"
-                                        Small="@(itemAccessor.Length !=0 ? ((GridSize)itemAccessor.Length) : GridSize.Twelve)"
-                                        Item>@itemAccessor.Getter(item)</Grid>                                    
-                                }
+                                        Small="@(itemAccessor.Length != 0 ? ((GridSize) itemAccessor.Length) : GridSize.Twelve)"
+                                        Item>
+                                        @itemAccessor.Getter(item)
+                                    </Grid>
+                                }*/
                             }
+                        </Grid>
+                    }
+                    else if (accessor.IsEnum)
+                    {
+                        <Grid
+                            @key="@accessor"
+                            Item
+                            ExtraSmall="@GridSize.Twelve"
+                            Small="@(GridSize.Twelve)">
+                            <FormControl
+                                Component="fieldset">
+                                <FormLabel Component="legend">
+                                    @(accessor.Title)
+                                </FormLabel>
+                                @{
+                                    var ctx = new BindContext {Target = Resource.TargetObject, Accessor = accessor};
+                                }
+                                <RadioGroup
+                                    Row
+                                    Value="@(accessor.Getter(Resource.TargetObject)?.ToString())"
+                                    OnChange="@(ctx.OnChanged)">
+                                    @{
+                                        var enumItems = Enum.GetValues(accessor.AccessorType);
+                                        foreach (var item in enumItems)
+                                        {
+                                            if (item.GetEnumMemberAttribute<TitleAttribute>()?.System == true)
+                                                continue;
+
+                                            <FormControlLabel
+                                                Label="@(item.GetEnumMemberAttribute<TitleAttribute>()?.Name ?? item?.ToString())"
+                                                Placement="@Placement.End">
+                                                <Radio
+                                                    Value="@item.ToString()"
+                                                    Color="@Color.Primary"/>
+                                            </FormControlLabel>
+                                        }
+                                    }
+                                </RadioGroup>
+                            </FormControl>
                         </Grid>
                     }
                     else
                     {
                         <Grid
-                            Item
-                            ExtraSmall="@GridSize.Twelve"
-                            Small="@(accessor.Long || accessor.Multiline ? @GridSize.Twelve : @GridSize.Six)">
+                            @key="@accessor"
+                             Item
+                             ExtraSmall="@GridSize.Twelve"
+                             Small="@(accessor.Long || accessor.Multiline ? @GridSize.Twelve : @GridSize.Six)">
+                            <div @key="@accessor">
+                                @{
+                                    var ctx = new BindContext {Target = Resource.TargetObject, Accessor = accessor};
+                                }
+                            </div>
 
                             <TextField
                                 @key="@(accessor.Name)"
@@ -54,26 +136,81 @@
                                  Label="@(accessor.Title)"
                                  Multiline="@(accessor.Multiline)"
                                  Rows="@(accessor.Multiline ? 4 : 1)"
-                                 Value="@(accessor.Getter(Resource.TargetObject)?.ToString())">
-                                @*                             @if (accessor.Icon != null) *@
-                                @*                             { *@
-                                @*                                 <StartAdornment> *@
-                                @*                                     <InputAdornment *@
-                                @*                                         Position="@InputPosition.Start"> *@
-                                @*                                         <MaterialIcon>@accessor.Icon</MaterialIcon> *@
-                                @*                                     </InputAdornment> *@
-                                @*                                     } *@
-                                @*                                 </StartAdornment> *@
-                                @*                             } *@
+                                 Value="@(accessor.Getter(Resource.TargetObject)?.ToString())"
+                                 OnChange="@(ctx.OnChanged)"
+                            >
                             </TextField>
-
                         </Grid>
                     }
                 }
+                <Grid
+                    Item
+                    Container
+                    ExtraSmall="@GridSize.Twelve"
+                    Small="@GridSize.Twelve"
+                    Spacing="@Spacing.Three"
+                >
+                    @foreach (var accessor in Resource.Accesors)
+                    {
+                        if (accessor.IsCollection == true)
+                        {
+                            @foreach (var item in (IEnumerable) accessor.Getter(Resource.TargetObject))
+                            {
+                                if (item is IAnswer qa)
+                                {
+                                    if (qa.Value?.StartsWith("https://") != true)
+                                    {
+                                        continue;
+                                    }
+                                    <Grid
+                                        Item
+                                        ExtraSmall="@GridSize.Twelve"
+                                        Small="@GridSize.Six">
+                                        @{
+                                            Action open = () => OnOpen(@qa.Value); 
+                                        }
+                                        <div @onclick="open">
+                                            <Card
+                                                Style="max-width: 480px;">
+                                                <CardActionArea>
+                                                    <CardMedia
+                                                        Style="min-height: 320px;"
+                                                        Image="@qa.Value"/>
+                                                    <CardContent>
+                                                        <Typography
+                                                            Variant="@TypographyVariant.Body2"
+                                                            Component="p">
+                                                            @qa.Name
+                                                        </Typography>
+                                                    </CardContent>
+                                                </CardActionArea>
+                                            </Card>
+                                        </div>
+                                    </Grid>
+                                }
+                            }
+                        }
+                    }
+                </Grid>
             </Grid>
         </Grid>
     </div>
+    <Dialog
+        Open="@Open"
+        OnClose="@OnClose">
+        <DialogContent>
+            <img src="@Url" style="max-width:100%;max-height:100%"/>
+        </DialogContent>
+        <DialogActions>
+            <Button
+                OnClick="@OnClose"
+                Color="@Color.Primary">
+                Close
+            </Button>
+        </DialogActions>
+    </Dialog>    
 </Paper>
+
 <div class="ObjectView-Actions">
     <Fab
         Color="@Color.Secondary"
@@ -85,4 +222,36 @@
 </div>
 
 @code {
+    
+    private bool Open { set; get; }
+    
+    private string Url { get; set; }
+
+
+    private void OnClose()
+    {
+        Open = false;
+
+        StateHasChanged();
+    }
+
+    private void OnOpen(string url)
+    {
+        Url = url;
+        Open = true;
+
+        StateHasChanged();
+    }
+    
+    public class BindContext
+    {
+        public Accessor Accessor { get; set; }
+        public Object Target { get; set; }
+
+        public void OnChanged(ChangeEventArgs args)
+        {
+            Accessor.Setter(Target, args.Value);
+        }
+    }
+
 }
