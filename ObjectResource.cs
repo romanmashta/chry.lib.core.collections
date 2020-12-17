@@ -8,6 +8,7 @@ using Autofac;
 using Cherry.Lib.Core.App.Discovery;
 using Cherry.Lib.Core.Data.Models;
 using Cherry.Lib.Core.Meta;
+using Microsoft.Extensions.Localization;
 
 namespace Cherry.Lib.Core.Collections
 {
@@ -23,32 +24,32 @@ namespace Cherry.Lib.Core.Collections
 
         public Type QueryView() => typeof(ObjectView.ObjectView);
 
-        public static ISaveableResource FromObject(IObjectWithRef targetObject, string icon, string displayName, string[] keywords)
+        public static ISaveableResource FromObject(IObjectWithRef targetObject, string icon, string displayName, string[] keywords, IStringLocalizer localizer)
         {
             var resource = new ObjectResource();
             var namedEntity = targetObject as INamedEntity;
-            resource.DisplayName = namedEntity?.Name ?? targetObject.GetTypeAttribute<TitleAttribute>()?.Name ?? displayName;
+            resource.DisplayName = namedEntity?.Name ?? targetObject.GetTypeAttribute<TitleAttribute>()?.GetLocalisedName(localizer) ?? displayName;
             resource.TargetObject = targetObject;
-            resource.Accesors = BuildAccessors(targetObject);
+            resource.Accesors = BuildAccessors(targetObject, localizer);
             resource.Icon ??= icon;
             resource.Keywords ??= keywords;
             return resource;
         }
 
-        public static List<Accessor> BuildAccessors(object objectWithRef)
+        public static List<Accessor> BuildAccessors(object objectWithRef, IStringLocalizer localizer)
         {
             var properties = objectWithRef
                 .GetEntityProperties()
                 .Where(p => p.GetMemberAttribute<TitleAttribute>() != null);
-            return properties.Select(p => CreateAccessor(objectWithRef, p)).ToList();
+            return properties.Select(p => CreateAccessor(objectWithRef, p, localizer)).ToList();
         }
 
-        private static Accessor CreateAccessor(object obj, PropertyInfo prop)
+        private static Accessor CreateAccessor(object obj, PropertyInfo prop, IStringLocalizer localizer)
         {
             var accessor = new Accessor
             {
                 Name = prop.Name,
-                Title = prop.GetMemberAttribute<TitleAttribute>()?.Name ?? prop.Name,
+                Title = prop.GetMemberAttribute<TitleAttribute>()?.GetLocalisedName(localizer) ?? prop.Name,
                 Length = prop.GetMemberAttribute<TitleAttribute>()?.Length ?? 0,
                 Long = prop.GetMemberAttribute<LongAttribute>() != null,
                 Multiline = prop.GetMemberAttribute<MultilineAttribute>() != null,

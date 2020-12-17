@@ -6,10 +6,12 @@
 @using Cherry.Lib.Core.Disco.Navigation
 @using Cherry.Lib.Core.Icons
 @using Cherry.Lib.Core.Meta
+@using Microsoft.Extensions.Localization
 @inherits ResourceViewBase<IObjectCollection>
 
 @inject INavigator Navigator
 @inject ILogger Logger;
+@inject IStringLocalizer<TableView> Localizer;
 
 <div class="Collection-Container">
     <Paper Style="width: 100%; overflow-x: auto;">
@@ -136,7 +138,7 @@
         if (accessor.AccessorType.IsEnum)
         {
             var icon = value.GetEnumMemberAttribute<IconAttribute>()?.Name;
-            var title = value.GetEnumMemberAttribute<TitleAttribute>()?.Name ?? value?.ToString();
+            var title = value.GetEnumMemberAttribute<TitleAttribute>()?.GetLocalisedName(Localizer) ?? value?.ToString();
             var color = value.GetEnumMemberAttribute<ColorAttribute>()?.Color ?? ElementColor.Grey;
             return RenderBadge(icon, color.ToString(), title);
         }

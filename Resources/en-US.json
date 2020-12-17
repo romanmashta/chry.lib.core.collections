@@ -1,0 +1,11 @@
+{
+  "Title": {
+    "Заповнення": "In Progress",
+    "Новий": "New",
+    "Підтверджено": "Approved",
+    "Відхилено": "Rejected"
+  },
+  "Object": {
+    "Save": "Save"
+  }
+}

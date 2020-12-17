@@ -13,11 +13,13 @@
 @using Cherry.Lib.Core.Disco.Navigation
 @using Cherry.Lib.Core.Icons
 @using Cherry.Lib.Core.Meta
+@using Microsoft.Extensions.Localization
 @using Newtonsoft.Json
 @using Skclusive.Material.Modal
 
 
 @inherits ObjectViewComponent
+@inject IStringLocalizer<ObjectView> Localizer
 
 <ObjectViewStyle/>
 
@@ -104,7 +106,7 @@
                                                 continue;
 
                                             <FormControlLabel
-                                                Label="@(item.GetEnumMemberAttribute<TitleAttribute>()?.Name ?? item?.ToString())"
+                                                Label="@(item.GetEnumMemberAttribute<TitleAttribute>()?.GetLocalisedName(Localizer) ?? item?.ToString())"
                                                 Placement="@Placement.End">
                                                 <Radio
                                                     Value="@item.ToString()"
@@ -217,7 +219,7 @@
         Variant="@FabVariant.Extended"
         OnClick="@SaveActionClick">
         <CheckIcon/>
-        Зберегти
+        @Localizer["object.save"]
     </Fab>
 </div>
 

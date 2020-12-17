@@ -9,6 +9,7 @@ using Cherry.Lib.Core.Data.Clients.Contracts;
 using Cherry.Lib.Core.Data.Models;
 using Cherry.Lib.Core.Meta;
 using Microsoft.AspNetCore.Components;
+using Microsoft.Extensions.Localization;
 using Serilog;
 using Skclusive.Material.Icon;
 
@@ -32,13 +33,13 @@ namespace Cherry.Lib.Core.Collections
         
         public bool IsEnum { get; set; }
 
-        public static Accessor FromExpression<T>(Expression<Func<T, object>> expression)
+        public static Accessor FromExpression<T>(Expression<Func<T, object>> expression, IStringLocalizer localizer)
         {
             var accessor = new Accessor();
             var accessedProperty = expression.GetPropertyInfo();
             var attr = accessedProperty.GetMemberAttribute<TitleAttribute>();
             accessor.Name = accessedProperty.Name;
-            accessor.Title = attr?.Name ?? accessedProperty.Name;
+            accessor.Title = attr?.GetLocalisedName(localizer) ?? accessedProperty.Name;
             accessor.Length = attr?.Length ?? 0;
             accessor.AccessorType = accessedProperty.PropertyType;
             var getter = expression.Compile();
@@ -48,6 +49,7 @@ namespace Cherry.Lib.Core.Collections
     }
     public abstract class ObjectCollectionBase<T> : IObjectCollection
     {
+        private readonly IStringLocalizer _stringLocalizer;
         public Accessor SortedBy { get; set; }
         public SortDirection Direction { get; set; }        
         public string ResourcePath { get; }
@@ -65,14 +67,17 @@ namespace Cherry.Lib.Core.Collections
 
         public List<Accessor> Accesors { get; }
 
-        protected ObjectCollectionBase(string resourcePath, 
+        protected ObjectCollectionBase(
+            string resourcePath, 
             string displayName, 
             string icon,
             Accessors<T> accessors,
             string[] keywords = null,
-            int? order = null
+            int? order = null,
+            IStringLocalizer stringLocalizer = null         
             )
         {
+            _stringLocalizer = stringLocalizer;
             DisplayName = displayName;
             Icon = icon;
             ResourcePath = resourcePath;
@@ -82,7 +87,7 @@ namespace Cherry.Lib.Core.Collections
         }
 
         private List<Accessor> BuildAccessors(Accessors<T> accessors)  
-            => accessors.Select(e =>Accessor.FromExpression<T>(e)).ToList();
+            => accessors.Select(e =>Accessor.FromExpression<T>(e, _stringLocalizer)).ToList();
 
         async Task<IEnumerable<object>> IObjectCollection.FetchItems() {
             var items = (await FetchItems()).Cast<object>();
@@ -105,10 +110,13 @@ namespace Cherry.Lib.Core.Collections
 
     public abstract class InmemoryCollection<T> : ObjectCollectionBase<T>
     {
+        private readonly IStringLocalizer _stringLocalizer;
         protected List<T> _collection = null;
 
-        public InmemoryCollection(string resourcePath, string displayName, string icon, Accessors<T> accessors, string[] keywords = null, int? order = null) : base(resourcePath, displayName, icon, accessors, keywords, order)
+        public InmemoryCollection(string resourcePath, string displayName, string icon, Accessors<T> accessors, string[] keywords = null, int? order = null, IStringLocalizer stringLocalizer = null) : 
+            base(resourcePath, displayName, icon, accessors, keywords, order, stringLocalizer)
         {
+            _stringLocalizer = stringLocalizer;
         }
 
         public override async Task<IEnumerable<T>> FetchItems() => await (_collection == null
@@ -134,7 +142,7 @@ namespace Cherry.Lib.Core.Collections
                 targetObject = items.Cast<IObjectWithRef>().FirstOrDefault(o => o.Ref == objectRef);
             }
             
-            var resorce = ObjectResource.FromObject(targetObject, Icon, DisplayName, Keywords);
+            var resorce = ObjectResource.FromObject(targetObject, Icon, DisplayName, Keywords, _stringLocalizer);
             resorce.SaveResource = () => SaveObject(targetObject);
             return await Task.FromResult(resorce);
         }
@@ -156,8 +164,9 @@ namespace Cherry.Lib.Core.Collections
             string icon,
             Accessors<T> accessors,
             string[] keywords = null,
-            int? order = null)
-            : base(resourcePath, displayName, icon, accessors, keywords, order)
+            int? order = null, 
+            IStringLocalizer stringLocalizer = null)
+            : base(resourcePath, displayName, icon, accessors, keywords, order, stringLocalizer)
         {
             _repositoryClient = repositoryClient;
         }
