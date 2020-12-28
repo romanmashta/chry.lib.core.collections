@@ -129,9 +129,8 @@
         Summary = result.Summary?.ToList();
         if(Tag != null && Summary!=null && Summary.All(t => t.Tag != Tag))
             Summary.Add(new SummaryItem{Tag = Tag, Count = 0});
-        if(Tag == null)
-            Items = result.Objects.Cast<object>();
-        else
+        Items = result.Objects.Cast<object>();
+        if(Tag != null)
         {
             object? f;
             Scope.TryResolveNamed(Resource.ResourcePath, typeof(IFilter), out f);
