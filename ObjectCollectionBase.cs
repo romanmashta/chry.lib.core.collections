@@ -100,6 +100,8 @@ namespace Cherry.Lib.Core.Collections
             return items;
         }
 
+        public abstract Task<CollectionResult> FetchItemsWithSummary();
+
         public abstract Task<IEnumerable<T>> FetchItems();
         
         
@@ -147,6 +149,14 @@ namespace Cherry.Lib.Core.Collections
             return await Task.FromResult(resorce);
         }
 
+        public override async Task<CollectionResult> FetchItemsWithSummary()
+        {
+            return new CollectionResult<T>()
+            {
+                Items = FetchItems().Result
+            };
+        }
+
         public virtual async Task SaveObject(IObjectWithRef targetObject)
         {
             
@@ -156,6 +166,7 @@ namespace Cherry.Lib.Core.Collections
     public class EntityCollection<T> : InmemoryCollection<T>
     {
         private readonly IRepositoryClient<T> _repositoryClient;
+        private string _collectionName;
 
         public EntityCollection(
             IRepositoryClient<T> repositoryClient,
@@ -165,16 +176,25 @@ namespace Cherry.Lib.Core.Collections
             Accessors<T> accessors,
             string[] keywords = null,
             int? order = null, 
-            IStringLocalizer stringLocalizer = null)
+            IStringLocalizer stringLocalizer = null,
+            string collectionName = null
+            )
             : base(resourcePath, displayName, icon, accessors, keywords, order, stringLocalizer)
         {
             _repositoryClient = repositoryClient;
+            _collectionName = collectionName;
         }
 
         public override async Task<IEnumerable<T>> FetchItems()
         {
-            var entities = await _repositoryClient.GetEntities(ResourcePath);
+            var entities = await _repositoryClient.GetEntities(_collectionName ?? ResourcePath, ResourcePath);
             return entities.Items.ToList();
+        }
+
+        public override async Task<CollectionResult> FetchItemsWithSummary()
+        {
+            var result = await _repositoryClient.GetEntities(_collectionName ?? ResourcePath, ResourcePath);
+            return result;
         }
 
         public override async Task SaveObject(IObjectWithRef targetObject)

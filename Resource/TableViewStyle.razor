@@ -60,5 +60,38 @@
     .Collection-Chip-Blue{
         color: var(--theme-palette-info-contrast-tex, #fff);
         background-color: var(--theme-palette-info-dark, #d32f2f);
-    }                                          
+    }
+    
+    .Flter{
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+    }    
+    
+    .Flter-Chip{
+        padding: calc(var(--theme-spacing, 8) * 0.5px) calc(var(--theme-spacing, 8) * 2px);
+        border-radius: 20px;
+        display: inline-flex;
+        align-items: center;
+        color: var(--theme-palette-info-dark, #d32f2f);
+        border: 1px solid var(--theme-palette-info-dark, #d32f2f);
+        cursor: pointer;        
+        min-width: 100px;
+        display: inline-flex;
+        justify-content: space-between;
+        margin: calc(var(--theme-spacing, 8) * 1px) calc(var(--theme-spacing, 8) * 0.5px);
+    }
+    
+    .Flter-Chip .MaterialIcon-Root{
+        padding-right: calc(var(--theme-spacing, 8) * 0.5px);
+    }    
+    
+    .Flter-Chip .Div{
+        margin: 0 calc(var(--theme-spacing, 8) * 1px);
+    }    
+    
+    .Flter-Chip-Active{
+        color: var(--theme-palette-info-contrast-tex, #fff);
+        background-color: var(--theme-palette-info-dark, #d32f2f);
+    }                                              
 </style>

@@ -3,17 +3,37 @@
 @using Cherry.Lib.Core.Disco.ContentViewer
 @using Serilog
 @using Cherry.Lib.Core.App.Discovery
+@using Cherry.Lib.Core.Data.Models
 @using Cherry.Lib.Core.Disco.Navigation
 @using Cherry.Lib.Core.Icons
 @using Cherry.Lib.Core.Meta
 @using Microsoft.Extensions.Localization
+@using Autofac
+@using Blazored.LocalStorage
+@using Cherry.Lib.Core.Data.Repositories
 @inherits ResourceViewBase<IObjectCollection>
 
 @inject INavigator Navigator
 @inject ILogger Logger;
 @inject IStringLocalizer<TableView> Localizer;
+@inject ILifetimeScope Scope;
+@inject ILocalStorageService LocalStorage;
 
 <div class="Collection-Container">
+    @if (Summary != null)
+    {
+        <div class="Flter">
+            @foreach (var tag in Summary)
+            {
+                <div @key="@tag.Tag" class="@(Tag == tag.Tag ? "Flter-Chip Flter-Chip-Active" : "Flter-Chip")" @onclick="() => ToggleFilter(tag.Tag)">
+                    <MaterialIcon>apartment</MaterialIcon>
+                    <div>@tag.Tag</div>
+                    <div class="Div">-</div>
+                    <div>@tag.Count</div>
+                </div>
+            }
+        </div>
+    }
     <Paper Style="width: 100%; overflow-x: auto;">
         <Table>
             <TableHead>
@@ -67,8 +87,10 @@
 @code
 {
     private bool Fetching = false;
+    private string Tag = null;
 
     private IEnumerable<object> Items = new List<object>();
+    private List<SummaryItem> Summary;
 
 
     private string SortMessage => "sort " + (Resource.Direction == SortDirection.Desc ? "descending" : "ascending");
@@ -99,9 +121,28 @@
     {
         Fetching = true;
         StateHasChanged();
+        
+        Tag = await LocalStorage.GetItemAsync<string>($"Tags.{Resource.ResourcePath}");
+        Console.WriteLine("xxxx: {0}", Tag);
 
-        Items = await Resource.FetchItems();
+        var result = await Resource.FetchItemsWithSummary();
+        Summary = result.Summary?.ToList();
+        if(Tag != null && Summary!=null && Summary.All(t => t.Tag != Tag))
+            Summary.Add(new SummaryItem{Tag = Tag, Count = 0});
+        if(Tag == null)
+            Items = result.Objects.Cast<object>();
+        else
+        {
+            object? f;
+            Scope.TryResolveNamed(Resource.ResourcePath, typeof(IFilter), out f);
+            if (f is IFilter filter)
+            {
+                Items = filter.FilterByTag(result.Objects, Tag).Cast<object>();
+            }
+        }
 
+        Summary = Summary?.OrderBy(t => t.Tag).ToList();
+        
         Fetching = false;
         StateHasChanged();
     }
@@ -130,6 +171,21 @@
     {
         Logger.Information("CreateNewClicked");
         Navigator.NavigateTo(Objects.NewObjectUri, true, Resource);
+    }
+
+    private async void ToggleFilter(string tag)
+    {
+        if (Tag == tag)
+            Tag = null;
+        else
+            Tag = tag;
+
+        if (Tag == null)
+            await LocalStorage.RemoveItemAsync($"Tags.{Resource.ResourcePath}");
+        else
+            await LocalStorage.SetItemAsync($"Tags.{Resource.ResourcePath}", Tag);
+
+        FetchItems();
     }
 
     RenderFragment RenderCell(Accessor accessor, object row)

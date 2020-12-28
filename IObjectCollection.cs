@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cherry.Lib.Core.App.Discovery;
+using Cherry.Lib.Core.Data.Models;
 
 namespace Cherry.Lib.Core.Collections
 {
@@ -16,5 +17,6 @@ namespace Cherry.Lib.Core.Collections
         int? Badge { get; }
         List<Accessor> Accesors { get; }
         Task<IEnumerable<object>> FetchItems();
+        Task<CollectionResult> FetchItemsWithSummary();
     }
 }
