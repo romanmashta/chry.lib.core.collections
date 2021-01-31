@@ -4,12 +4,17 @@
 @using Skclusive.Material.Grid
 @using Skclusive.Material.Card
 @using Skclusive.Material.Input
+@using Skclusive.Material.List
 @using System.Collections
+@using Autofac
 @using Cherry.Lib.Bot.Core.Host
 @using Cherry.Lib.Bot.Core.Store
 @using Cherry.Lib.Core.Disco.ContentViewer
 @using Serilog
 @using Cherry.Lib.Core.App.Discovery
+@using Cherry.Lib.Core.Data.Clients.Contracts
+@using Cherry.Lib.Core.Data.Models
+@using Cherry.Lib.Core.Data.Repositories.Contracts
 @using Cherry.Lib.Core.Disco.Navigation
 @using Cherry.Lib.Core.Icons
 @using Cherry.Lib.Core.Meta
@@ -20,6 +25,7 @@
 
 @inherits ObjectViewComponent
 @inject IStringLocalizer<ObjectView> Localizer
+@inject ILifetimeScope Scope;
 
 <ObjectViewStyle/>
 
@@ -79,6 +85,43 @@
                             }
                         </Grid>
                     }
+                    else if (accessor.IsLookup)
+                    {
+                        <Grid
+                            @key="@accessor"
+                             Item
+                             ExtraSmall="@GridSize.Twelve"
+                             Small="@(accessor.Long || accessor.Multiline ? @GridSize.Twelve : @GridSize.Six)">
+                            <div @key="@accessor">
+                                @{
+                                    var ctx = new BindContext {Target = Resource.TargetObject, Accessor = accessor};
+                                }
+                            </div>
+
+                            <TextField
+                                @key="@(accessor.Name)"
+                                 FullWidth
+                                 Id="@(accessor.Name)"
+                                 Label="@(accessor.Title)"
+                                 Multiline="@(accessor.Multiline)"
+                                 Rows="@(accessor.Multiline ? 4 : 1)"
+                                 Value="@(accessor.Getter(Resource.TargetObject)?.ToString())"
+                                 Class="Lookup-Field"
+                                 ReadOnly=true
+                                 OnFocus="@(() => HandleLookupOpen(ctx))"
+                                 >
+                                <EndAdornment>
+                                    <InputAdornment
+                                        Position="@InputPosition.End"
+                                        Context="AdornmentContext">
+                                        <IconButton OnClick="@(() => HandleLookupOpen(ctx))">
+                                                <ArrowDropDownIcon />
+                                        </IconButton>
+                                    </InputAdornment>
+                                </EndAdornment>                                
+                            </TextField>
+                        </Grid>                        
+                    }                    
                     else if (accessor.IsEnum)
                     {
                         <Grid
@@ -223,13 +266,81 @@
     </Fab>
 </div>
 
+    <Dialog
+        MaxWidth="MaxWidth.ExtraSmall"
+        FullWidth=true
+        Scroll="DialogScroll.Paper"
+        OnClose="@HandleLookupClose"
+        Open="@LookupOpen">
+        <DialogTitle Id="simple-dialog-title">@(Lookupontext?.Accessor?.Title)</DialogTitle>
+        <DialogContent Style="padding: 8px;" Dividers>
+        <List>
+            @foreach(var entity in Entities)
+            {
+                <ListItem
+                    @key="@entity"
+                     Button
+                     OnClick="@((arg) => UpdateLookupSelectedValue(entity))">
+                    <ListItemAvatar>
+                        <MaterialIcon>@(Lookupontext?.Accessor?.Icon)</MaterialIcon>
+                    </ListItemAvatar>
+                    <ListItemText
+                        Primary="@entity.ToString()" />
+                </ListItem>
+            }
+        </List>
+        </DialogContent>        
+        <DialogActions
+            Style="marging: 0px; padding: 8px;">
+            <Button
+                OnClick="@HandleLookupClose"
+                Color="@Color.Primary">
+                @Localizer["object.close"]
+            </Button>
+        </DialogActions>        
+    </Dialog>
+
 @code {
+    private INamedEntity[] Entities = new INamedEntity[]{};
+    private BindContext Lookupontext;
+
+    private bool LookupOpen { set; get; }
     
     private bool Open { set; get; }
     
     private string Url { get; set; }
+    
+    private async void HandleLookupOpen(BindContext bindContext)
+    {
+        Lookupontext = bindContext;
+        Entities = new INamedEntity[] {};
+        LookupOpen = true;
 
+        var type = bindContext.Accessor.AccessorType;
+        var resource = bindContext.Accessor.CollectionName;
+        
+        var repository = Scope.Resolve(typeof(IRepositoryClient<>).MakeGenericType(type)) as IRepository;
+        var items = await repository.GetEntities(resource, resource) as CollectionResult;
+        Entities = items.Objects.Cast<INamedEntity>().OrderBy(e => e.Name).ToArray();
 
+        StateHasChanged();
+    }
+
+    private void HandleLookupClose()
+    {
+        LookupOpen = false;
+
+        StateHasChanged();
+    }
+
+    private void UpdateLookupSelectedValue(INamedEntity entity)
+    {
+        Lookupontext.SetValue(entity);
+        LookupOpen = false;
+
+        StateHasChanged();
+    }    
+    
     private void OnClose()
     {
         Open = false;
@@ -252,7 +363,12 @@
 
         public void OnChanged(ChangeEventArgs args)
         {
-            Accessor.Setter(Target, args.Value);
+            SetValue(args.Value);
+        }
+
+        public void SetValue(object value)
+        {
+            Accessor.Setter(Target, value);
         }
     }
 

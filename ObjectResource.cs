@@ -9,6 +9,7 @@ using Cherry.Lib.Core.App.Discovery;
 using Cherry.Lib.Core.Data.Models;
 using Cherry.Lib.Core.Meta;
 using Microsoft.Extensions.Localization;
+using MongoDbGenericRepository.Attributes;
 
 namespace Cherry.Lib.Core.Collections
 {
@@ -46,6 +47,7 @@ namespace Cherry.Lib.Core.Collections
 
         private static Accessor CreateAccessor(object obj, PropertyInfo prop, IStringLocalizer localizer)
         {
+            var collectionName = prop.GetMemberAttribute<LookupAttribute>()?.Name;
             var accessor = new Accessor
             {
                 Name = prop.Name,
@@ -55,6 +57,8 @@ namespace Cherry.Lib.Core.Collections
                 Multiline = prop.GetMemberAttribute<MultilineAttribute>() != null,
                 Icon = prop.GetMemberAttribute<IconAttribute>()?.Name,
                 IsCollection = typeof(IList).IsAssignableFrom(prop.PropertyType),
+                IsLookup = collectionName != null,
+                CollectionName = collectionName,
                 IsEnum = prop.PropertyType.IsEnum,
                 Getter = (o) => prop.GetValue(obj),
                 Setter = (o, raw) =>

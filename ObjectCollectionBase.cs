@@ -32,12 +32,23 @@ namespace Cherry.Lib.Core.Collections
         public int Length { get; set; } = 0;
         
         public bool IsEnum { get; set; }
+        
+        public bool IsLookup { get; set; }
+        
+        public string CollectionName { get; set; }
 
         public static Accessor FromExpression<T>(Expression<Func<T, object>> expression, IStringLocalizer localizer)
         {
-            var accessor = new Accessor();
             var accessedProperty = expression.GetPropertyInfo();
-            var attr = accessedProperty.GetMemberAttribute<TitleAttribute>();
+            var attributes = accessedProperty.DeclaringType
+                .GetInterfaces()
+                .Select(t => t.GetProperty(accessedProperty.Name))
+                .Where(p=>p!=null)
+                .SelectMany(p => p.GetCustomAttributes(true));
+                
+            var accessor = new Accessor();
+
+            var attr = attributes.OfType<TitleAttribute>().FirstOrDefault();
             accessor.Name = accessedProperty.Name;
             accessor.Title = attr?.GetLocalisedName(localizer) ?? accessedProperty.Name;
             accessor.Length = attr?.Length ?? 0;
@@ -46,6 +57,7 @@ namespace Cherry.Lib.Core.Collections
             accessor.Getter = (o) => getter((T) o);
             return accessor;        
         }
+        
     }
     public abstract class ObjectCollectionBase<T> : IObjectCollection
     {
@@ -134,10 +146,15 @@ namespace Cherry.Lib.Core.Collections
         {
             var items = await FetchItems();
             IObjectWithRef targetObject = null;
+            Console.WriteLine($"Resolving... {objectRef}");
+            ;
             if (objectRef == Objects.NewObjectUri)
             {
-                targetObject = (IObjectWithRef) typeof(T).CreateObjectOf();
-                targetObject.Ref = Guid.NewGuid().ToString();
+                //targetObject = (IObjectWithRef) typeof(T).CreateObjectOf();
+                targetObject = (IObjectWithRef) Activator.CreateInstance<T>();
+                //targetObject.Ref = Guid.NewGuid().ToString();
+                
+                Console.WriteLine($"new object with ref... {targetObject.Ref}");
             }
             else
             {
@@ -185,21 +202,41 @@ namespace Cherry.Lib.Core.Collections
             _collectionName = collectionName;
         }
 
+        private IEnumerable<T> ProcessItems(IEnumerable<T> entities)
+        {
+            var items = entities.Cast<object>();
+            
+            if(SortedBy !=null && Direction != SortDirection.None)
+            {
+                items = Direction == SortDirection.Asc
+                    ? items.OrderBy(SortedBy.Getter)
+                    : items.OrderByDescending(SortedBy.Getter);
+            }
+
+            return items.Cast<T>();
+        }
+
         public override async Task<IEnumerable<T>> FetchItems()
         {
             var entities = await _repositoryClient.GetEntities(_collectionName ?? ResourcePath, ResourcePath);
-            return entities.Items.ToList();
+            return ProcessItems(entities.Items);
         }
 
         public override async Task<CollectionResult> FetchItemsWithSummary()
         {
             var result = await _repositoryClient.GetEntities(_collectionName ?? ResourcePath, ResourcePath);
+            result.Items = ProcessItems(result.Items);
             return result;
         }
 
         public override async Task SaveObject(IObjectWithRef targetObject)
         {
-            await _repositoryClient.Update(ResourcePath, targetObject.Ref, targetObject);
+            if (targetObject.Ref == null)
+            {
+                await _repositoryClient.Create(ResourcePath, targetObject);
+            }
+            else
+                await _repositoryClient.Update(ResourcePath, targetObject.Ref, targetObject);
         }
     }
 
