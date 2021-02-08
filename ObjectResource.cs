@@ -48,13 +48,15 @@ namespace Cherry.Lib.Core.Collections
         private static Accessor CreateAccessor(object obj, PropertyInfo prop, IStringLocalizer localizer)
         {
             var collectionName = prop.GetMemberAttribute<LookupAttribute>()?.Name;
+            var title = prop.GetMemberAttribute<TitleAttribute>();
             var accessor = new Accessor
             {
                 Name = prop.Name,
-                Title = prop.GetMemberAttribute<TitleAttribute>()?.GetLocalisedName(localizer) ?? prop.Name,
-                Length = prop.GetMemberAttribute<TitleAttribute>()?.Length ?? 0,
+                Title = title?.GetLocalisedName(localizer) ?? prop.Name,
+                Length = title?.Length ?? 0,
                 Long = prop.GetMemberAttribute<LongAttribute>() != null,
                 Multiline = prop.GetMemberAttribute<MultilineAttribute>() != null,
+                ReadOnly = title?.ReadOnly == true,
                 Icon = prop.GetMemberAttribute<IconAttribute>()?.Name,
                 IsCollection = typeof(IList).IsAssignableFrom(prop.PropertyType),
                 IsLookup = collectionName != null,

@@ -25,6 +25,8 @@ namespace Cherry.Lib.Core.Collections
         public string Icon { get; set; }
         public bool Multiline { get; set; }
         
+        public bool ReadOnly { get; set; }
+        
         public bool IsCollection { get; set; }
         
         public Type AccessorType { get; set; }
